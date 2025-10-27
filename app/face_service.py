@@ -19,7 +19,7 @@ from app.exceptions import (
     ModelError,
     PersonAlreadyExistsError
 )
-from app.vector_store import VectorStore
+from app.mysql_vector_store import MySQLVectorStore
 
 # Configure logging
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -36,7 +36,7 @@ class FaceService:
     Service class for handling all face recognition logic.
     """
 
-    def __init__(self, vector_store: VectorStore):
+    def __init__(self, vector_store: MySQLVectorStore):
         """
         Initializes the FaceService.
 
@@ -122,7 +122,7 @@ class FaceService:
 
         return final_score
 
-    def extract_embeddings(self, images: list[str]) -> list[tuple[list[float], float]]:
+    def extract_embeddings(self, images: list[str]) -> list[tuple[list[float], float, bytes]]:
         """
         Decodes, validates, and extracts embeddings from a list of Base64 encoded images.
 
@@ -130,7 +130,7 @@ class FaceService:
             images: A list of Base64 encoded image strings.
 
         Returns:
-            A list of tuples, where each tuple contains (embedding, quality_score).
+            A list of tuples, where each tuple contains (embedding, quality_score, image_bytes).
 
         Raises:
             FaceNotDetectedError: If no face is found in an image.
@@ -166,7 +166,7 @@ class FaceService:
                     )
 
                 embedding = face.embedding.tolist()  # Convert numpy array to list for JSON serialization
-                results.append((embedding, quality_score))
+                results.append((embedding, quality_score, img_bytes))
 
             except (FaceNotDetectedError, MultipleFacesError, PoorImageQualityError) as e:
                 logger.warning(f"Image validation failed: {e}")
@@ -197,20 +197,20 @@ class FaceService:
         """
         logger.info(f"Starting registration for person_id: {person_id} with {len(images)} images.")
 
-        # --- ADD THIS CHECK ---
         if self.vector_store.exists(person_id):
             raise PersonAlreadyExistsError(person_id)
-        # ----------------------
 
         embedding_data = self.extract_embeddings(images)
 
         if not embedding_data:
             raise FaceNotDetectedError("No valid faces found in any of the provided images.")
 
+        embedding_data.sort(key=lambda x: x[1], reverse=True)
+        best_image = embedding_data[0][2]
         embeddings = [item[0] for item in embedding_data]
         avg_quality = np.mean([item[1] for item in embedding_data])
 
-        count_stored = self.vector_store.store_embeddings(person_id, embeddings)
+        count_stored = self.vector_store.store_embeddings(person_id, embeddings, best_image)
 
         logger.info(f"Successfully registered {count_stored} embeddings for person_id: {person_id}.")
         return {"embeddings_stored": count_stored, "average_quality": float(avg_quality)}
@@ -223,11 +223,11 @@ class FaceService:
             image: A Base64 encoded image of the face to verify.
 
         Returns:
-            A dictionary with the matched person_id and confidence score, or null if no match.
+            A dictionary with the matched person_id, confidence score, and best_image, or null if no match.
         """
         logger.info("Starting face verification...")
         embedding_data = self.extract_embeddings([image])
-        embedding, _ = embedding_data[0]
+        embedding, _, _ = embedding_data[0]
 
         search_results = self.vector_store.search(
             embedding=embedding,
@@ -237,11 +237,11 @@ class FaceService:
 
         if not search_results:
             logger.info("Verification failed: No match found above threshold.")
-            return {"person_id": None, "confidence": 0.0}
+            return {"person_id": None, "confidence": 0.0, "best_image": None}
 
-        person_id, confidence = search_results[0]
+        person_id, confidence, best_image = search_results[0]
         logger.info(f"Verification successful: Found match for person_id '{person_id}' with confidence {confidence:.4f}.")
-        return {"person_id": person_id, "confidence": float(confidence)}
+        return {"person_id": person_id, "confidence": float(confidence), "best_image": base64.b64encode(best_image).decode('utf-8')}
 
     def update_face(self, person_id: str, images: list[str]) -> dict:
         """
@@ -256,9 +256,11 @@ class FaceService:
         """
         logger.info(f"Starting update for person_id: {person_id} with {len(images)} images.")
         embedding_data = self.extract_embeddings(images)
+        embedding_data.sort(key=lambda x: x[1], reverse=True)
+        best_image = embedding_data[0][2]
         embeddings = [item[0] for item in embedding_data]
 
-        count_updated = self.vector_store.update_embeddings(person_id, embeddings)
+        count_updated = self.vector_store.update_embeddings(person_id, embeddings, best_image)
 
         logger.info(f"Successfully updated {count_updated} embeddings for person_id: {person_id}.")
         return {"embeddings_updated": count_updated}

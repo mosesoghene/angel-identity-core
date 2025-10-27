@@ -1,6 +1,6 @@
 services:
   # The Face Recognition FastAPI Service
-  face-service:
+  angel-face-service:
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,45 +9,35 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    # The face-service depends on Qdrant and Redis to be running first.
     depends_on:
-      qdrant:
-        condition: service_started
-      redis:
-        condition: service_started
+      mysql:
+        condition: service_healthy
     volumes:
-      # Mounts the local models directory into the default location InsightFace checks.
-      # This ensures the model is available to the service inside the container.
-      # Note: The destination path is /root/.insightface/models/, which is the
-      # standard path for the library, not /app/models.
       - ./models:/root/.insightface/models/
     healthcheck:
-      # This healthcheck is redundant if the one in the Dockerfile is used,
-      # but it provides a quick check at the compose level.
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s # Give the service more time to start and load the model
+      start_period: 20s
 
-  # Qdrant Vector Database
-  qdrant:
-    image: qdrant/qdrant:latest
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
     ports:
-      - "6333:6333"
-      - "6334:6334" # gRPC port
+      - "3306:3306"
     restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: face_recognition
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     volumes:
-      # Persist Qdrant data on the host machine to prevent data loss on container restart.
-      - qdrant_data:/qdrant/storage
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-# Define the named volume for Qdrant data persistence.
 volumes:
-  qdrant_data:
+  mysql_data:

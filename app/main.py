@@ -27,7 +27,7 @@ from app.models import (
     DeleteResponse, ErrorResponse,
     HealthCheckResponse
 )
-from app.vector_store import VectorStore
+from app.mysql_vector_store import MySQLVectorStore
 
 # --- Application Setup ---
 logging.basicConfig(level=settings.LOG_LEVEL.upper())
@@ -44,7 +44,7 @@ app = FastAPI(
 # --- Service Initialization ---
 # Services are initialized on startup.
 try:
-    vector_store = VectorStore()
+    vector_store = MySQLVectorStore()
     face_service = FaceService(vector_store=vector_store)
     logger.info("✓ Services initialized successfully.")
 except Exception as e:
@@ -154,20 +154,10 @@ async def delete_faces(person_id: str, api_key: str = Depends(get_api_key)):
 @app.get("/health", response_model=HealthCheckResponse, summary="Perform a health check", tags=["System"])
 async def health_check():
     """Checks the status of the service and its dependencies."""
-    import redis # Import here for the check
-
     model_loaded = face_service.app is not None
-    qdrant_ok = vector_store.health_check()
-
-    redis_ok = False
-    try:
-        redis_client = redis.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=1)
-        redis_ok = redis_client.ping()
-    except redis.exceptions.ConnectionError:
-        logger.warning("Health check: Could not connect to Redis.")
+    mysql_ok = vector_store.health_check()
 
     return HealthCheckResponse(
         model_loaded=model_loaded,
-        qdrant="connected" if qdrant_ok else "disconnected",
-        redis="connected" if redis_ok else "disconnected"
+        database="connected" if mysql_ok else "disconnected"
     )

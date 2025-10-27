@@ -23,10 +23,9 @@ RUN apt-get update && \
 # Copy the dependencies file first to leverage Docker's layer caching.
 COPY ./requirements.txt /app/requirements.txt
 
-# Install Python dependencies. Now that the build tools are present,
-# insightface can be compiled successfully.
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies using uv.
+RUN pip install uv && \
+    uv pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code into the container
 COPY ./app /app/app

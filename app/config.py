@@ -13,20 +13,10 @@ class Settings(BaseSettings):
     # API Key for securing the service
     API_KEY: str
 
-    # Qdrant configuration
-    QDRANT_URL: str = Field(
-        default="http://localhost:6333",
-        description="URL for the Qdrant vector database"
-    )
-    QDRANT_COLLECTION_NAME: str = Field(
-        default="face_embeddings",
-        description="Name of the Qdrant collection"
-    )
-
-    # Redis configuration
-    REDIS_URL: str = Field(
-        default="redis://localhost:6379",
-        description="URL for the Redis server"
+    # SQLAlchemy configuration
+    SQLALCHEMY_DATABASE_URI: str = Field(
+        default="mysql+mysqlconnector://user:password@localhost/face_recognition",
+        description="SQLAlchemy database URI"
     )
 
     # Face recognition parameters

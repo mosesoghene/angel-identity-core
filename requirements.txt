@@ -9,6 +9,7 @@ redis==5.0.1
 pydantic-settings==2.1.0
 python-multipart==0.0.6
 mysql-connector-python
+SQLAlchemy
 
 # Pin NumPy to a version before the breaking 2.0 release to ensure
 # compatibility with pre-compiled libraries like opencv-python.

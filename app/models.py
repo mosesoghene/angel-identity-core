@@ -75,6 +75,7 @@ class VerifyResponse(BaseModel):
     """Response model for a verification request."""
     person_id: Optional[str] = Field(None, description="The matched person's ID, or null if no match found.")
     confidence: float = Field(..., description="The confidence score of the match (0-1).")
+    best_image: Optional[str] = Field(None, description="The best image of the person.")
 
 
 class UpdateResponse(BaseModel):
@@ -98,5 +99,4 @@ class HealthCheckResponse(BaseModel):
     """Response model for the health check endpoint."""
     status: str = "ok"
     model_loaded: bool
-    qdrant: str
-    redis: str
+    database: str
