@@ -122,19 +122,17 @@ class FaceService:
 
         return final_score
 
-    def extract_embeddings(self, images: list[str]) -> list[tuple[list[float], float, bytes]]:
+    def extract_embeddings(self, images: list[str], allow_multiple_faces: bool = False) -> list[tuple[list[float], float, bytes]]:
         """
         Decodes, validates, and extracts embeddings from a list of Base64 encoded images.
-
         Args:
             images: A list of Base64 encoded image strings.
-
+            allow_multiple_faces: If True, allows multiple faces and picks the largest one.
         Returns:
             A list of tuples, where each tuple contains (embedding, quality_score, image_bytes).
-
         Raises:
             FaceNotDetectedError: If no face is found in an image.
-            MultipleFacesError: If more than one face is found.
+            MultipleFacesError: If more than one face is found and not allowed.
             PoorImageQualityError: If the image quality is below a minimum threshold.
         """
         results = []
@@ -144,17 +142,22 @@ class FaceService:
                 img_bytes = base64.b64decode(image_b64)
                 img_np = np.frombuffer(img_bytes, np.uint8)
                 img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
-
                 if img is None:
                     raise ValueError("Could not decode image. It might be corrupt or in an unsupported format.")
 
-                # Detect faces and extract embeddings
+                # Detect faces
                 faces = self.app.get(img)
-
-                if len(faces) == 0:
+                if not faces:
                     raise FaceNotDetectedError(f"No face detected in image {i + 1}.")
+
+                # Handle multiple faces
                 if len(faces) > 1:
-                    raise MultipleFacesError(f"Multiple faces ({len(faces)}) detected in image {i + 1}.")
+                    if not allow_multiple_faces:
+                        raise MultipleFacesError(f"Multiple faces ({len(faces)}) detected in image {i + 1}.")
+                    else:
+                        logger.debug(f"Multiple faces ({len(faces)}) detected. Selecting the largest one.")
+                        # Sort faces by bounding box area (largest first)
+                        faces.sort(key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]), reverse=True)
 
                 face = faces[0]
                 quality_score = self._calculate_quality(img, face)
@@ -226,7 +229,7 @@ class FaceService:
             A dictionary with the matched person_id, confidence score, and best_image, or null if no match.
         """
         logger.info("Starting face verification...")
-        embedding_data = self.extract_embeddings([image])
+        embedding_data = self.extract_embeddings([image], allow_multiple_faces=True)
         embedding, _, _ = embedding_data[0]
 
         search_results = self.vector_store.search(
