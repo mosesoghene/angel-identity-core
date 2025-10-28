@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, LargeBinary, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.sql.expression import func
+from sqlalchemy.dialects import mysql
 import numpy as np
 import logging
 
@@ -16,7 +17,7 @@ class Person(Base):
     __tablename__ = 'persons'
     id = Column(Integer, primary_key=True)
     person_id = Column(String(255), unique=True, nullable=False)
-    best_image = Column(LargeBinary)
+    best_image = Column(mysql.LONGBLOB, nullable=False)
     embeddings = relationship("Embedding", back_populates="person")
 
 class Embedding(Base):
