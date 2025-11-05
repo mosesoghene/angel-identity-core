@@ -119,3 +119,5 @@ dmypy.json
 
 # Models
 models/
+
+onedrive/
