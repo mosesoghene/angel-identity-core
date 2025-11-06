@@ -34,7 +34,7 @@ logging.basicConfig(level=settings.LOG_LEVEL.upper())
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Face Recognition Microservice",
+    title="School Angel Face Recognition Microservice",
     description="A stateless microservice for face registration, verification, and management.",
     version="1.0.0",
     docs_url="/docs",  # Enable Swagger UI
