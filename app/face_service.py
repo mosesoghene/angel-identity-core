@@ -22,7 +22,6 @@ from app.exceptions import (
 from app.mysql_vector_store import MySQLVectorStore
 
 # Configure logging
-logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 # --- Quality Assessment Constants ---
@@ -76,12 +75,14 @@ class FaceService:
             A quality score between 0.0 and 1.0.
         """
         scores = []
+        logger.debug("Calculating face quality...")
 
         # 1. Face Size Score
         x1, y1, x2, y2 = face.bbox.astype(int)
         area = (x2 - x1) * (y2 - y1)
         size_score = min(1.0, area / MIN_FACE_AREA)
         scores.append(size_score)
+        logger.debug(f"Face area: {area}, Size score: {size_score:.2f}")
 
         # 2. Pose Angle Score
         pose = face.pose  # (yaw, pitch, roll)
@@ -89,6 +90,7 @@ class FaceService:
         # Score is 1 if angle is 0, decreases to 0 as it approaches MAX_POSE_ANGLE
         pose_score = max(0.0, 1.0 - (max_angle / MAX_POSE_ANGLE))
         scores.append(pose_score)
+        logger.debug(f"Max pose angle: {max_angle:.2f}, Pose score: {pose_score:.2f}")
 
         # 3. Brightness Score
         face_roi = img[y1:y2, x1:x2]
@@ -103,22 +105,11 @@ class FaceService:
                 diff = min(abs(avg_brightness - min_b), abs(avg_brightness - max_b))
                 brightness_score = max(0.0, 1.0 - diff / ((max_b - min_b) / 2))
             scores.append(brightness_score)
-
-            # In app/face_service.py, inside the _calculate_quality function
+            logger.debug(f"Average brightness: {avg_brightness:.2f}, Brightness score: {brightness_score:.2f}")
 
         # Final score is the average of all individual scores
         final_score = np.mean(scores) if scores else 0.0
-
-        # --- CORRECTED LOGGING ---
-        # First, determine the brightness score string
-        brightness_str = f"{scores[2]:.2f}" if len(scores) > 2 else "N/A"
-
-        # Then, use it in the final f-string
-        logger.debug(
-            f"Quality assessment: size={size_score:.2f}, pose={pose_score:.2f}, "
-            f"brightness={brightness_str} -> Final={final_score:.2f}"
-        )
-        # -------------------------
+        logger.info(f"Final quality score: {final_score:.2f}")
 
         return final_score
 
@@ -136,7 +127,10 @@ class FaceService:
             PoorImageQualityError: If the image quality is below a minimum threshold.
         """
         results = []
+        logger.info(f"Starting embedding extraction for {len(images)} image(s).")
         for i, image_b64 in enumerate(images):
+            logger.info(f"Image {i + 1} added for processing.")
+            logger.debug(f"Processing image {i + 1}...")
             try:
                 # Decode Base64 string to an image
                 img_bytes = base64.b64decode(image_b64)
@@ -144,11 +138,13 @@ class FaceService:
                 img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
                 if img is None:
                     raise ValueError("Could not decode image. It might be corrupt or in an unsupported format.")
+                logger.debug("Image decoded successfully.")
 
                 # Detect faces
                 faces = self.app.get(img)
                 if not faces:
                     raise FaceNotDetectedError(f"No face detected in image {i + 1}.")
+                logger.debug(f"Detected {len(faces)} face(s).")
 
                 # Handle multiple faces
                 if len(faces) > 1:
@@ -170,15 +166,16 @@ class FaceService:
 
                 embedding = face.embedding.tolist()  # Convert numpy array to list for JSON serialization
                 results.append((embedding, quality_score, img_bytes))
+                logger.info(f"Image {i + 1} processed successfully with quality score {quality_score:.2f}.")
 
             except (FaceNotDetectedError, MultipleFacesError, PoorImageQualityError) as e:
-                logger.warning(f"Image validation failed: {e}")
+                logger.warning(f"Image validation failed for image {i + 1}: {e}")
                 raise e  # Re-raise to be caught by the API layer
             except Exception as e:
                 logger.error(f"An unexpected error occurred during embedding extraction for image {i + 1}: {e}", exc_info=True)
                 # Wrap unexpected errors in a standard exception type
                 raise ModelError(f"Failed to process image {i + 1}.")
-
+        logger.info("Embedding extraction completed.")
         return results
 
         # In app/face_service.py
@@ -201,11 +198,13 @@ class FaceService:
         logger.info(f"Starting registration for person_id: {person_id} with {len(images)} images.")
 
         if self.vector_store.exists(person_id):
+            logger.warning(f"Registration failed: person_id '{person_id}' already exists.")
             raise PersonAlreadyExistsError(person_id)
 
         embedding_data = self.extract_embeddings(images)
 
         if not embedding_data:
+            logger.error("Registration failed: No valid faces found in any of the provided images.")
             raise FaceNotDetectedError("No valid faces found in any of the provided images.")
 
         embedding_data.sort(key=lambda x: x[1], reverse=True)
@@ -213,6 +212,7 @@ class FaceService:
         embeddings = [item[0] for item in embedding_data]
         avg_quality = np.mean([item[1] for item in embedding_data])
 
+        logger.info(f"Proceeding to save {len(embeddings)} embeddings to the database for person_id: {person_id}.")
         count_stored = self.vector_store.store_embeddings(person_id, embeddings, best_image)
 
         logger.info(f"Successfully registered {count_stored} embeddings for person_id: {person_id}.")
@@ -231,7 +231,9 @@ class FaceService:
         logger.info("Starting face verification...")
         embedding_data = self.extract_embeddings([image], allow_multiple_faces=True)
         embedding, _, _ = embedding_data[0]
+        logger.debug("Embedding extracted for verification.")
 
+        logger.info("Match request: Searching for similar faces in the vector store.")
         search_results = self.vector_store.search(
             embedding=embedding,
             threshold=settings.SIMILARITY_THRESHOLD,
@@ -239,11 +241,11 @@ class FaceService:
         )
 
         if not search_results:
-            logger.info("Verification failed: No match found above threshold.")
+            logger.info("Match result: No match found above the similarity threshold.")
             return {"person_id": None, "confidence": 0.0, "best_image": None}
 
         person_id, confidence, best_image = search_results[0]
-        logger.info(f"Verification successful: Found match for person_id '{person_id}' with confidence {confidence:.4f}.")
+        logger.info(f"Match found: person_id '{person_id}' with confidence {confidence:.4f}.")
         return {"person_id": person_id, "confidence": float(confidence), "best_image": base64.b64encode(best_image).decode('utf-8')}
 
     def update_face(self, person_id: str, images: list[str]) -> dict:
@@ -263,6 +265,7 @@ class FaceService:
         best_image = embedding_data[0][2]
         embeddings = [item[0] for item in embedding_data]
 
+        logger.info(f"Proceeding to save {len(embeddings)} updated embeddings to the database for person_id: {person_id}.")
         count_updated = self.vector_store.update_embeddings(person_id, embeddings, best_image)
 
         logger.info(f"Successfully updated {count_updated} embeddings for person_id: {person_id}.")
@@ -282,6 +285,6 @@ class FaceService:
         success = self.vector_store.delete_embeddings(person_id)
         if success:
             logger.info(f"Successfully deleted embeddings for person_id: {person_id}.")
-        # The method in vector_store will raise an exception on failure,
-        # so we can assume success if we reach here.
-        return True
+        else:
+            logger.error(f"Deletion failed for person_id: {person_id}.")
+        return success

@@ -37,6 +37,10 @@ class Settings(BaseSettings):
         default="INFO",
         description="Logging level (e.g., DEBUG, INFO, WARNING, ERROR)"
     )
+    LOG_FILE: str = Field(
+        default="logs/app.log",
+        description="Path to the log file"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
