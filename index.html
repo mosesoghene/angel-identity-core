@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            color: #333;
+        }
+        h1, h2, h3 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: .3em;
+            font-weight: 600;
+        }
+        h1 { font-size: 2.25em; }
+        h2 { font-size: 1.75em; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.9em;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 0.2em 0.4em;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 1em;
+        }
+        ul, li {
+            margin-left: 16px;
+        }
+        hr {
+            height: .25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>API Documentation</h1>
+    <p>This document provides detailed documentation for the Face Recognition Microservice API.</p>
+
+    <h2>Authentication</h2>
+    <p>All endpoints (except for <code>/health</code>) require an API key for authentication. The API key must be included in the <code>X-API-Key</code> header of your request.</p>
+
+    <hr>
+
+    <h2>Endpoints</h2>
+
+    <h3>Face Registration</h3>
+    <p>The system provides two endpoints for face registration: one for <code>base64 image string</code> and another for <code>multipart/form-data</code>.</p>
+
+    <h4>1. Register via Base64 Image String</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>POST /register</code></li>
+        <li><strong>Description:</strong> Registers a new person by sending one or more <code>base64 image string</code>.</li>
+        <li><strong>Request Type:</strong> <code>POST</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>Content-Type: application/json</code></li>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Request Body:</strong>
+<pre><code class="language-json">
+{
+  "person_id": "UNIQUE_PERSON_ID",
+  "images": [
+    "BASE64_ENCODED_IMAGE_STRING_1",
+    "BASE64_ENCODED_IMAGE_STRING_2"
+  ]
+}
+</code></pre>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "success": true,
+  "person_id": "UNIQUE_PERSON_ID",
+  "faces_detected": 2,
+  "faces_registered": 2
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X POST "http://localhost:8000/register" \
+-H "Content-Type: application/json" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
+-d '{
+  "person_id": "user123",
+  "images": ["/9j/4AAQSkZJRgABAQE..."]
+}'
+</code></pre>
+        </li>
+    </ul>
+
+    <h4>2. Register via Multipart/Form-Data</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>POST /register-upload</code></li>
+        <li><strong>Description:</strong> Registers a new person by uploading image files using <code>multipart/form-data</code>.</li>
+        <li><strong>Request Type:</strong> <code>POST</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Request Body:</strong> <code>multipart/form-data</code>
+            <ul>
+                <li><code>person_id</code>: (string) A unique identifier for the person.</li>
+                <li><code>images</code>: (file) One or more image files.</li>
+            </ul>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "success": true,
+  "person_id": "UNIQUE_PERSON_ID",
+  "faces_detected": 1,
+  "faces_registered": 1
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X POST "http://localhost:8000/register-upload" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
+-F "person_id=user123" \
+-F "images=@/path/to/image1.jpg" \
+-F "images=@/path/to/image2.png"
+</code></pre>
+        </li>
+    </ul>
+
+    <h3>Face Management</h3>
+
+    <h4>1. Update Face Embeddings</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>PUT /faces/{person_id}</code></li>
+        <li><strong>Description:</strong> Updates the face embeddings for an existing person.</li>
+        <li><strong>Request Type:</strong> <code>PUT</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>Content-Type: application/json</code></li>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Path Parameter:</strong>
+            <ul>
+                <li><code>person_id</code>: The ID of the person to update.</li>
+            </ul>
+        </li>
+        <li><strong>Request Body:</strong>
+<pre><code class="language-json">
+{
+  "images": [
+    "NEW_BASE64_ENCODED_IMAGE_STRING_1",
+    "NEW_BASE64_ENCODED_IMAGE_STRING_2"
+  ]
+}
+</code></pre>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "success": true,
+  "person_id": "UNIQUE_PERSON_ID",
+  "faces_detected": 2,
+  "faces_updated": 2
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X PUT "http://localhost:8000/faces/user123" \
+-H "Content-Type: application/json" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
+-d '{
+  "images": ["/9j/4AAQSkZJRgABAQE..."]
+}'
+</code></pre>
+        </li>
+    </ul>
+
+    <h4>2. Delete a Person</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>DELETE /faces/{person_id}</code></li>
+        <li><strong>Description:</strong> Deletes a person and their associated face embeddings.</li>
+        <li><strong>Request Type:</strong> <code>DELETE</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Path Parameter:</strong>
+            <ul>
+                <li><code>person_id</code>: The ID of the person to delete.</li>
+            </ul>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "success": true
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X DELETE "http://localhost:8000/faces/user123" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;"
+</code></pre>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h3>Face Verification</h3>
+    <p>The system provides two endpoints for face verification: one for <code>base64 image string</code> and another for <code>multipart/form-data</code>.</p>
+
+    <h4>1. Verify via Base64 Image String</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>POST /verify</code></li>
+        <li><strong>Description:</strong> Verifies a face by sending a <code>base64 image string</code>.</li>
+        <li><strong>Request Type:</strong> <code>POST</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>Content-Type: application/json</code></li>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Request Body:</strong>
+<pre><code class="language-json">
+{
+  "image": "BASE64_ENCODED_IMAGE_STRING"
+}
+</code></pre>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "found": true,
+  "person_id": "MATCHING_PERSON_ID",
+  "confidence": 0.95
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X POST "http://localhost:8000/verify" \
+-H "Content-Type: application/json" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
+-d '{
+  "image": "/9j/4AAQSkZJRgABAQE..."]
+}'
+</code></pre>
+        </li>
+    </ul>
+
+    <h4>2. Verify via Multipart/Form-Data</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>POST /verify-upload</code></li>
+        <li><strong>Description:</strong> Verifies a face by uploading an image file using <code>multipart/form-data</code>.</li>
+        <li><strong>Request Type:</strong> <code>POST</code></li>
+        <li><strong>Headers:</strong>
+            <ul>
+                <li><code>X-API-Key: &lt;YOUR_API_KEY&gt;</code></li>
+            </ul>
+        </li>
+        <li><strong>Request Body:</strong> <code>multipart/form-data</code>
+            <ul>
+                <li><code>image</code>: (file) A single image file.</li>
+            </ul>
+        </li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "found": true,
+  "person_id": "MATCHING_PERSON_ID",
+  "confidence": 0.95
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X POST "http://localhost:8000/verify-upload" \
+-H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
+-F "image=@/path/to/verify_image.jpg"
+</code></pre>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h3>System</h3>
+
+    <h4>1. Health Check</h4>
+    <ul>
+        <li><strong>Endpoint:</strong> <code>GET /health</code></li>
+        <li><strong>Description:</strong> Checks the health of the service and its dependencies.</li>
+        <li><strong>Request Type:</strong> <code>GET</code></li>
+        <li><strong>Response:</strong>
+            <ul>
+                <li><strong>200 OK:</strong>
+<pre><code class="language-json">
+{
+  "model_loaded": true,
+  "database": "connected"
+}
+</code></pre>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Example Usage (curl):</strong>
+<pre><code class="language-bash">
+curl -X GET "http://localhost:8000/health"
+</code></pre>
+        </li>
+    </ul>
+
+</body>
+</html>
