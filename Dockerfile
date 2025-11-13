@@ -22,11 +22,15 @@ COPY ./requirements.txt /app/requirements.txt
 # Install Python dependencies using pip.
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Download and extract the InsightFace model
+COPY ./download_model.sh /app/download_model.sh
+RUN chmod +x /app/download_model.sh && /app/download_model.sh
+
 # Copy the application code into the container
 COPY ./app /app/app
 
-# Copy the InsightFace models into the default location the library searches.
-COPY ./models /root/.insightface/models/
+# Move the downloaded models to the default insightface location
+RUN mkdir -p /root/.insightface && mv ./models /root/.insightface/models
 
 # Expose the port the app runs on
 EXPOSE 8000

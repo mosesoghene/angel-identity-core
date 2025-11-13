@@ -49,6 +49,18 @@ class ApiTester(tk.Tk):
         ttk.Button(reg_frame, text="Select Images for Registration", command=self.select_reg_images).pack(pady=2)
         ttk.Button(reg_frame, text="Register", command=self.register).pack(pady=2)
 
+        # Create a canvas with a scrollbar to display thumbnails
+        self.thumbnail_canvas = tk.Canvas(reg_frame, borderwidth=0, height=100)
+        self.thumbnail_frame = ttk.Frame(self.thumbnail_canvas)
+        self.thumbnail_scrollbar = ttk.Scrollbar(reg_frame, orient="vertical", command=self.thumbnail_canvas.yview)
+        self.thumbnail_canvas.configure(yscrollcommand=self.thumbnail_scrollbar.set)
+
+        self.thumbnail_scrollbar.pack(side="right", fill="y")
+        self.thumbnail_canvas.pack(side="left", fill="both", expand=True)
+        self.thumbnail_canvas.create_window((4, 4), window=self.thumbnail_frame, anchor="nw")
+
+        self.thumbnail_frame.bind("<Configure>", lambda e: self.thumbnail_canvas.configure(scrollregion=self.thumbnail_canvas.bbox("all")))
+
         # Verification
         verify_frame = ttk.LabelFrame(left_frame, text="Verify")
         verify_frame.pack(pady=5, padx=5, fill="x")
@@ -81,10 +93,30 @@ class ApiTester(tk.Tk):
 
         self.reg_image_paths = []
         self.verify_image_path = ""
+        self.reg_images = []
 
     def select_reg_images(self):
         self.reg_image_paths = filedialog.askopenfilenames(title="Select Images for Registration")
         self.reg_images_label.config(text=f"{len(self.reg_image_paths)} images selected")
+
+        # Clear existing thumbnails
+        for widget in self.thumbnail_frame.winfo_children():
+            widget.destroy()
+        self.reg_images = []
+
+        # Display new thumbnails
+        for image_path in self.reg_image_paths:
+            try:
+                img = Image.open(image_path)
+                img.thumbnail((80, 80))
+                photo = ImageTk.PhotoImage(img)
+                
+                label = ttk.Label(self.thumbnail_frame, image=photo)
+                label.image = photo  # Keep a reference!
+                label.pack(side="left", padx=2, pady=2)
+                self.reg_images.append(photo)
+            except Exception as e:
+                print(f"Error loading image {image_path}: {e}")
 
     def select_verify_image(self):
         self.verify_image_path = filedialog.askopenfilename(title="Select Image for Verification")
