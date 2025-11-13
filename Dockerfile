@@ -22,9 +22,6 @@ COPY ./requirements.txt /app/requirements.txt
 # Install Python dependencies using pip.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download and extract the InsightFace model
-COPY ./download_model.sh /app/download_model.sh
-RUN chmod +x /app/download_model.sh && /app/download_model.sh
 
 # Copy the application code into the container
 COPY ./app /app/app
