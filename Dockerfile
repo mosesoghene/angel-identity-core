@@ -12,6 +12,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     wget \
+    unzip \
     build-essential \
     cmake \
     libgl1 \
@@ -19,6 +20,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -L -o "buffalo_l.zip" "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip"
+RUN unzip -o "buffalo_l.zip" -d "./models"
     
 
 # Copy the dependencies file first to leverage Docker's layer caching.
