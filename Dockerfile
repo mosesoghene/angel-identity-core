@@ -10,6 +10,8 @@ WORKDIR /app
 # - libgl1: A graphics library required by OpenCV.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    curl \
+    wget \
     build-essential \
     cmake \
     libgl1 \
