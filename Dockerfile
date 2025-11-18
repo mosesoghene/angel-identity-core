@@ -16,7 +16,8 @@ RUN apt-get update && \
     libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN ./download_model.sh
+RUN wget -O "buffalo_l.zip" "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip"
+    
 
 # Copy the dependencies file first to leverage Docker's layer caching.
 COPY ./requirements.txt /app/requirements.txt
