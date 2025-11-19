@@ -13,6 +13,7 @@ RUN apt-get update && \
     curl \
     wget \
     unzip \
+    docker.io \
     build-essential \
     cmake \
     libgl1 \
