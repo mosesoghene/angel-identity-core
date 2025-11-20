@@ -44,7 +44,7 @@ The system provides two endpoints for face registration: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X POST "http://localhost:8000/register" \
+    curl -X POST "http://http://192.168.0.82:8800/register" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: <YOUR_API_KEY>" \
     -d '{
@@ -75,7 +75,7 @@ The system provides two endpoints for face registration: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X POST "http://localhost:8000/register-upload" \
+    curl -X POST "http://http://192.168.0.82:8800/register-upload" \
     -H "X-API-Key: <YOUR_API_KEY>" \
     -F "person_id=user123" \
     -F "images=@/path/to/image1.jpg" \
@@ -115,7 +115,7 @@ The system provides two endpoints for face registration: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X PUT "http://localhost:8000/faces/user123" \
+    curl -X PUT "http://http://192.168.0.82:8800/faces/user123" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: <YOUR_API_KEY>" \
     -d '{
@@ -141,7 +141,7 @@ The system provides two endpoints for face registration: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X DELETE "http://localhost:8000/faces/user123" \
+    curl -X DELETE "http://http://192.168.0.82:8800/faces/user123" \
     -H "X-API-Key: <YOUR_API_KEY>"
     ```
 
@@ -176,7 +176,7 @@ The system provides two endpoints for face verification: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X POST "http://localhost:8000/verify" \
+    curl -X POST "http://http://192.168.0.82:8800/verify" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: <YOUR_API_KEY>" \
     -d '{
@@ -204,7 +204,7 @@ The system provides two endpoints for face verification: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X POST "http://localhost:8000/verify-upload" \
+    curl -X POST "http://http://192.168.0.82:8800/verify-upload" \
     -H "X-API-Key: <YOUR_API_KEY>" \
     -F "image=@/path/to/verify_image.jpg"
     ```
@@ -228,5 +228,5 @@ The system provides two endpoints for face verification: one for `base64 image s
         ```
 *   **Example Usage (curl):**
     ```bash
-    curl -X GET "http://localhost:8000/health"
+    curl -X GET "http://http://192.168.0.82:8800/health"
     ```

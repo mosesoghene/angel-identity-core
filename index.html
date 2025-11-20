@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,15 +14,31 @@
             margin: 0 auto;
             color: #333;
         }
-        h1, h2, h3 {
+
+        h1,
+        h2,
+        h3 {
             border-bottom: 1px solid #eaecef;
             padding-bottom: .3em;
             font-weight: 600;
         }
-        h1 { font-size: 2.25em; }
-        h2 { font-size: 1.75em; }
-        h3 { font-size: 1.5em; }
-        h4 { font-size: 1.25em; }
+
+        h1 {
+            font-size: 2.25em;
+        }
+
+        h2 {
+            font-size: 1.75em;
+        }
+
+        h3 {
+            font-size: 1.5em;
+        }
+
+        h4 {
+            font-size: 1.25em;
+        }
+
         code {
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
             font-size: 0.9em;
@@ -29,20 +46,25 @@
             border-radius: 6px;
             padding: 0.2em 0.4em;
         }
+
         pre {
             background-color: #f6f8fa;
             border-radius: 6px;
             padding: 16px;
             overflow: auto;
         }
+
         pre code {
             background-color: transparent;
             padding: 0;
             font-size: 1em;
         }
-        ul, li {
+
+        ul,
+        li {
             margin-left: 16px;
         }
+
         hr {
             height: .25em;
             padding: 0;
@@ -52,25 +74,41 @@
         }
     </style>
 </head>
+
 <body>
 
     <h1>API Documentation</h1>
     <p>This document provides detailed documentation for the Face Recognition Microservice API.</p>
 
     <h2>Authentication</h2>
-    <p>All endpoints (except for <code>/health</code>) require an API key for authentication. The API key must be included in the <code>X-API-Key</code> header of your request.</p>
+    <p>All endpoints (except for <code>/health</code>) require an API key for authentication. The API key must be
+        included in the <code>X-API-Key</code> header of your request.</p>
 
     <hr>
 
-    <h2>Endpoints</h2>
+    <h2>API IP ADDRESS</h2>
+    <p>http://192.168.0.82:8800</p>
+
+    <h2>API SWAGGER DOCUMENTATION URL/IP</h2>
+    <p>http://192.168.0.82:8800/docs</p>
+
+    <h2>API KEY</h2>
+    <p>jeen4tt9plk3m9n4k5o6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2</p>
+
+    <hr><hr>
+    <br><br><br>
+
+    <h1>Endpoints</h1>
 
     <h3>Face Registration</h3>
-    <p>The system provides two endpoints for face registration: one for <code>base64 image string</code> and another for <code>multipart/form-data</code>.</p>
+    <p>The system provides two endpoints for face registration: one for <code>base64 image string</code> and another for
+        <code>multipart/form-data</code>.</p>
 
     <h4>1. Register via Base64 Image String</h4>
     <ul>
         <li><strong>Endpoint:</strong> <code>POST /register</code></li>
-        <li><strong>Description:</strong> Registers a new person by sending one or more <code>base64 image string</code>.</li>
+        <li><strong>Description:</strong> Registers a new person by sending one or more
+            <code>base64 image string</code>.</li>
         <li><strong>Request Type:</strong> <code>POST</code></li>
         <li><strong>Headers:</strong>
             <ul>
@@ -79,7 +117,7 @@
             </ul>
         </li>
         <li><strong>Request Body:</strong>
-<pre><code class="language-json">
+            <pre><code class="language-json">
 {
   "person_id": "UNIQUE_PERSON_ID",
   "images": [
@@ -92,7 +130,7 @@
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "success": true,
   "person_id": "UNIQUE_PERSON_ID",
@@ -104,8 +142,8 @@
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X POST "http://localhost:8000/register" \
+            <pre><code class="language-bash">
+curl -X POST "http://http://192.168.0.82:8800/register" \
 -H "Content-Type: application/json" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
 -d '{
@@ -119,7 +157,8 @@ curl -X POST "http://localhost:8000/register" \
     <h4>2. Register via Multipart/Form-Data</h4>
     <ul>
         <li><strong>Endpoint:</strong> <code>POST /register-upload</code></li>
-        <li><strong>Description:</strong> Registers a new person by uploading image files using <code>multipart/form-data</code>.</li>
+        <li><strong>Description:</strong> Registers a new person by uploading image files using
+            <code>multipart/form-data</code>.</li>
         <li><strong>Request Type:</strong> <code>POST</code></li>
         <li><strong>Headers:</strong>
             <ul>
@@ -135,7 +174,7 @@ curl -X POST "http://localhost:8000/register" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "success": true,
   "person_id": "UNIQUE_PERSON_ID",
@@ -147,8 +186,8 @@ curl -X POST "http://localhost:8000/register" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X POST "http://localhost:8000/register-upload" \
+            <pre><code class="language-bash">
+curl -X POST "http://http://192.168.0.82:8800/register-upload" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
 -F "person_id=user123" \
 -F "images=@/path/to/image1.jpg" \
@@ -176,7 +215,7 @@ curl -X POST "http://localhost:8000/register-upload" \
             </ul>
         </li>
         <li><strong>Request Body:</strong>
-<pre><code class="language-json">
+            <pre><code class="language-json">
 {
   "images": [
     "NEW_BASE64_ENCODED_IMAGE_STRING_1",
@@ -188,7 +227,7 @@ curl -X POST "http://localhost:8000/register-upload" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "success": true,
   "person_id": "UNIQUE_PERSON_ID",
@@ -200,8 +239,8 @@ curl -X POST "http://localhost:8000/register-upload" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X PUT "http://localhost:8000/faces/user123" \
+            <pre><code class="language-bash">
+curl -X PUT "http://http://192.168.0.82:8800/faces/user123" \
 -H "Content-Type: application/json" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
 -d '{
@@ -229,7 +268,7 @@ curl -X PUT "http://localhost:8000/faces/user123" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "success": true
 }
@@ -238,8 +277,8 @@ curl -X PUT "http://localhost:8000/faces/user123" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X DELETE "http://localhost:8000/faces/user123" \
+            <pre><code class="language-bash">
+curl -X DELETE "http://http://192.168.0.82:8800/faces/user123" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;"
 </code></pre>
         </li>
@@ -248,7 +287,8 @@ curl -X DELETE "http://localhost:8000/faces/user123" \
     <hr>
 
     <h3>Face Verification</h3>
-    <p>The system provides two endpoints for face verification: one for <code>base64 image string</code> and another for <code>multipart/form-data</code>.</p>
+    <p>The system provides two endpoints for face verification: one for <code>base64 image string</code> and another for
+        <code>multipart/form-data</code>.</p>
 
     <h4>1. Verify via Base64 Image String</h4>
     <ul>
@@ -262,7 +302,7 @@ curl -X DELETE "http://localhost:8000/faces/user123" \
             </ul>
         </li>
         <li><strong>Request Body:</strong>
-<pre><code class="language-json">
+            <pre><code class="language-json">
 {
   "image": "BASE64_ENCODED_IMAGE_STRING"
 }
@@ -271,7 +311,7 @@ curl -X DELETE "http://localhost:8000/faces/user123" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "found": true,
   "person_id": "MATCHING_PERSON_ID",
@@ -282,8 +322,8 @@ curl -X DELETE "http://localhost:8000/faces/user123" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X POST "http://localhost:8000/verify" \
+            <pre><code class="language-bash">
+curl -X POST "http://http://192.168.0.82:8800/verify" \
 -H "Content-Type: application/json" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
 -d '{
@@ -296,7 +336,8 @@ curl -X POST "http://localhost:8000/verify" \
     <h4>2. Verify via Multipart/Form-Data</h4>
     <ul>
         <li><strong>Endpoint:</strong> <code>POST /verify-upload</code></li>
-        <li><strong>Description:</strong> Verifies a face by uploading an image file using <code>multipart/form-data</code>.</li>
+        <li><strong>Description:</strong> Verifies a face by uploading an image file using
+            <code>multipart/form-data</code>.</li>
         <li><strong>Request Type:</strong> <code>POST</code></li>
         <li><strong>Headers:</strong>
             <ul>
@@ -311,7 +352,7 @@ curl -X POST "http://localhost:8000/verify" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "found": true,
   "person_id": "MATCHING_PERSON_ID",
@@ -322,8 +363,8 @@ curl -X POST "http://localhost:8000/verify" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X POST "http://localhost:8000/verify-upload" \
+            <pre><code class="language-bash">
+curl -X POST "http://http://192.168.0.82:8800/verify-upload" \
 -H "X-API-Key: &lt;YOUR_API_KEY&gt;" \
 -F "image=@/path/to/verify_image.jpg"
 </code></pre>
@@ -342,7 +383,7 @@ curl -X POST "http://localhost:8000/verify-upload" \
         <li><strong>Response:</strong>
             <ul>
                 <li><strong>200 OK:</strong>
-<pre><code class="language-json">
+                    <pre><code class="language-json">
 {
   "model_loaded": true,
   "database": "connected"
@@ -352,11 +393,12 @@ curl -X POST "http://localhost:8000/verify-upload" \
             </ul>
         </li>
         <li><strong>Example Usage (curl):</strong>
-<pre><code class="language-bash">
-curl -X GET "http://localhost:8000/health"
+            <pre><code class="language-bash">
+curl -X GET "http://http://192.168.0.82:8800/health"
 </code></pre>
         </li>
     </ul>
 
 </body>
+
 </html>
